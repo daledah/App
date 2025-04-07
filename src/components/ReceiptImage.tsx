@@ -93,6 +93,8 @@ type ReceiptImageProps = (
 
     /** The transaction data in search */
     transactionItem?: TransactionListItemType;
+
+    shouldShowFullHeight?: boolean;
 };
 
 function ReceiptImage({
@@ -115,12 +117,14 @@ function ReceiptImage({
     onPress,
     transactionItem,
     isPerDiemRequest,
+    shouldShowFullHeight=false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
     if (isEmptyReceipt) {
         return (
             <ReceiptEmptyState
+                shouldShowFullHeight={shouldShowFullHeight}
                 isThumbnail
                 onPress={onPress}
                 disabled={!onPress}

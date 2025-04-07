@@ -63,6 +63,8 @@ type ReportActionItemImageProps = {
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    shouldShowFullHeight?: boolean;
 };
 
 /**
@@ -85,6 +87,7 @@ function ReportActionItemImage({
     readonly = false,
     shouldMapHaveBorderRadius,
     isFromReviewDuplicates = false,
+    shouldShowFullHeight = false,
     onPress,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
@@ -141,6 +144,7 @@ function ReportActionItemImage({
     }
 
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+   propsObj.shouldShowFullHeight = shouldShowFullHeight;
 
     if (enablePreviewModal) {
         return (

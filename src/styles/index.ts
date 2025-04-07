@@ -5072,6 +5072,10 @@ const styles = (theme: ThemeColors) =>
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
+        aspectRatioReportActionImage: {
+            aspectRatio: 16 / 9,
+        },
+
         receiptDropHeaderGap: {
             backgroundColor: theme.fileDropUIBG,
         },

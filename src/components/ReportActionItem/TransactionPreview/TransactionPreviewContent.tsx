@@ -33,6 +33,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+import usePermissions from '@hooks/usePermissions';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -109,6 +110,7 @@ function TransactionPreviewContent({
     const firstViolation = violations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction);
+    const {canUseTableReportView} = usePermissions();
     const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit) : undefined;
 
     const previewText = useMemo(
@@ -199,6 +201,7 @@ function TransactionPreviewContent({
                     {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
+                            shouldShowFullHeight={canUseTableReportView}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isHovered={isHovered || isScanning}
                             size={1}

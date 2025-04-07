@@ -31,6 +31,8 @@ type ReportActionItemImagesProps = {
 
     /** Callback to be called on onPress */
     onPress?: () => void;
+
+    shouldShowFullHeight?: boolean;
 };
 
 /**
@@ -42,7 +44,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false, onPress}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldShowFullHeight = false}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -73,7 +75,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
 
     return (
         <View style={styles.reportActionItemImagesContainer}>
-            <View style={[styles.reportActionItemImages, hoverStyle, minHeightStyle, maxHeightStyle]}>
+            <View style={[styles.reportActionItemImages, hoverStyle, ...(shouldShowFullHeight ? [styles.aspectRatioReportActionImage] : [minHeightStyle, maxHeightStyle])]}>
                 {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
@@ -96,6 +98,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     isSingleImage={numberOfShownImages === 1}
                                     shouldMapHaveBorderRadius={false}
                                     onPress={onPress}
+                                    shouldShowFullHeight={shouldShowFullHeight}
                                 />
                             </View>
                         </ImageBehaviorContextProvider>
