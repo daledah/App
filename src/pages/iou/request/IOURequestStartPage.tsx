@@ -50,7 +50,7 @@ function IOURequestStartPage({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || CONST.DEFAULT_NUMBER_ID}`);
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || CONST.DEFAULT_NUMBER_ID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const tabTitles = {
@@ -63,21 +63,8 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
-    const transactionRequestType = useMemo(
-        () => (transaction?.iouRequestType ?? shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL),
-        [transaction?.iouRequestType, shouldUseTab, selectedTab],
-    );
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            if (transaction?.reportID === reportID || isLoadingSelectedTab) {
-                return;
-            }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
-    );
+    const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
@@ -116,6 +103,28 @@ function IOURequestStartPage({
 
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+
+
+    const transactionRequestType = useMemo(
+        () => {
+            if(transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM && !shouldShowPerDiemOption){
+                return shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL;
+            } 
+            return (transaction?.iouRequestType ?? shouldUseTab ? selectedTab : CONST.IOU.REQUEST_TYPE.MANUAL);
+        },
+        [transaction?.iouRequestType, shouldShowPerDiemOption, shouldUseTab, selectedTab],
+    );
+
+
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
+    useFocusEffect(
+        useCallback(() => {
+            if (transaction?.reportID === reportID || isLoadingSelectedTab || isLoadingOnyxValue(transactionMetadata)) {
+                return;
+               }
+            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+        }, [transaction?.reportID, transaction?.iouRequestType, reportID, isLoadingSelectedTab, transactionMetadata, policy, isFromGlobalCreate, transactionRequestType]),
+    );
 
     return (
         <AccessOrNotFoundWrapper
