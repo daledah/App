@@ -1,7 +1,6 @@
-import React, {useMemo, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -20,7 +19,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
-import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,9 +37,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
-    const [categoryID, setCategoryID] = useState<string>();
-    const [groupID, setGroupID] = useState<string>();
     const isQuickSettingsFlow = backTo;
 
     const toggleSubtitle =
@@ -75,20 +71,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
 
     const hasEnabledCategories = hasEnabledOptions(policyCategories ?? {});
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
-
-    const setNewCategory = (selectedCategory: ListItem) => {
-        if (!selectedCategory.keyForList || !groupID) {
-            return;
-        }
-        if (categoryID !== selectedCategory.keyForList) {
-            setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
-        }
-
-        Keyboard.dismiss();
-        InteractionManager.runAfterInteractions(() => {
-            setIsSelectorModalVisible(false);
-        });
-    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -136,24 +118,12 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                                     if (!item.groupID || !item.categoryID) {
                                         return;
                                     }
-                                    setIsSelectorModalVisible(true);
-                                    setCategoryID(item.categoryID);
-                                    setGroupID(item.groupID);
+                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS_GROUP_SELECTOR.getRoute(policyID, item.groupID, Navigation.getActiveRoute()));
                                 }}
                             />
                         )}
                     </View>
                 </ScrollView>
-                {!!categoryID && !!groupID && (
-                    <CategorySelectorModal
-                        policyID={policyID}
-                        isVisible={isSelectorModalVisible}
-                        currentCategory={categoryID}
-                        onClose={() => setIsSelectorModalVisible(false)}
-                        onCategorySelected={setNewCategory}
-                        label={groupID[0].toUpperCase() + groupID.slice(1)}
-                    />
-                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -714,6 +714,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.CATEGORIES_SETTINGS_GROUP_SELECTOR]: {
+                            path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS_GROUP_SELECTOR.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_IMPORT.route,
                         },

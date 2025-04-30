@@ -576,6 +576,7 @@ const SCREENS = {
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        CATEGORIES_SETTINGS_GROUP_SELECTOR: 'Categories_Settings_Group_Selector',
         CATEGORIES_IMPORT: 'Categories_Import',
         CATEGORIES_IMPORTED: 'Categories_Imported',
         MORE_FEATURES: 'Workspace_More_Features',

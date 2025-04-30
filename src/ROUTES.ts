@@ -1370,6 +1370,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
+    WORKSPACE_CATEGORIES_SETTINGS_GROUP_SELECTOR: {
+        route: 'settings/workspaces/:policyID/categories/settings/:groupID',
+        getRoute: (policyID: string, groupID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/categories/settings/${groupID}` as const, backTo),
+    },
     WORKSPACE_CATEGORIES_IMPORT: {
         route: 'settings/workspaces/:policyID/categories/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,

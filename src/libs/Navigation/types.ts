@@ -245,6 +245,11 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS_GROUP_SELECTOR]: {
+        policyID: string;
+        groupID: string;
+        backTo?: Routes;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
         policyID: string;
         backTo?: Routes;
