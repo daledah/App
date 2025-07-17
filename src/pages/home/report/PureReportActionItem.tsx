@@ -458,9 +458,6 @@ function PureReportActionItem({
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
-    // IOUDetails only exists when we are sending money
-    const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
-
     const updateHiddenState = useCallback(
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
@@ -1382,12 +1379,6 @@ function PureReportActionItem({
                 reportID={reportID}
             />
         );
-    }
-
-    // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
-    // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
-        return null;
     }
 
     // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
