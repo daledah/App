@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
@@ -13,7 +13,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {getDefaultApprover, isCollectPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +28,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
+    const [shouldShowUpgradeModal, setShouldShowUpgradeModal] = useState(false);
+    const [isUpgradeModalShown, setIsUpgradeModalShown] = useState(false);
     const {setIsClosing} = useCloseImportPage();
 
     const policyID = route.params.policyID;
@@ -66,11 +68,33 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
+    useEffect(() => {
+        const defaultApprover = getDefaultApprover(policy);
+        const columns = Object.values(spreadsheet?.columns ?? {});
+        const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
+        const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
+        const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
+        spreadsheet?.data[membersEmailsColumn]?.slice(containsHeader ? 1 : 0).forEach((email, index) => {
+            let submitsTo = '';
+            if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
+                submitsTo = membersSubmitsTo?.[containsHeader ? index + 1 : index];
+            }
+            if (submitsTo !== defaultApprover && isCollectPolicy(policy)) {
+                setShouldShowUpgradeModal(true);
+            }
+        });
+    }, [containsHeader, policy, spreadsheet?.columns, spreadsheet?.data]);
+
     const importMembers = useCallback(() => {
         setIsValidationEnabled(true);
 
         const errors = validate();
         if (Object.keys(errors).length > 0) {
+            return;
+        }
+
+        if (shouldShowUpgradeModal) {
+            setIsUpgradeModalShown(true);
             return;
         }
 
@@ -143,7 +167,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
+    }, [validate, shouldShowUpgradeModal, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -187,6 +211,27 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
+            />
+            <ConfirmModal
+                isVisible={isUpgradeModalShown}
+                title={'Before you go'}
+                prompt={'You are importing multiple approvers so you will have to upgrade your workspace to access this feature'}
+                onConfirm={() => {
+                    setIsUpgradeModalShown(false);
+                    setShouldShowUpgradeModal(false);
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                            policyID,
+                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                            Navigation.getActiveRoute(),
+                        ),
+                    );
+                }}
+                onCancel={() => {
+                    setIsUpgradeModalShown(false);
+                    setShouldShowUpgradeModal(false);
+                    Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+                }}
             />
         </ScreenWrapper>
     );
