@@ -6,6 +6,7 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import {usePolicyTags} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
@@ -19,12 +20,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getTagLists} from '@libs/PolicyUtils';
 import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
     getCreated as getTransactionCreated,
+    getTagArrayFromName,
     hasMissingSmartscanFields,
     isAmountMissing,
     isMerchantMissing,
@@ -33,6 +36,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
@@ -163,6 +167,10 @@ function TransactionItemRow({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
+    
+    const allPolicyTags = usePolicyTags();
+    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`];
+    const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -186,6 +194,23 @@ function TransactionItemRow({
             return '';
         }
 
+        const hasTagOutOfPolicyViolation = violations?.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+
+        if (!hasTagOutOfPolicyViolation && transactionItem.tag && policyTagLists.length > 0) {
+            const transactionTags = getTagArrayFromName(transactionItem.tag);
+            for (let i = 0; i < policyTagLists.length; i++) {
+                const tagList = policyTagLists[i];
+                const tagValue = transactionTags[i];
+                if (tagValue && tagList) {
+                    const tags = tagList.tags;
+                    const isTagEnabled = tags?.[tagValue]?.enabled ?? false;
+                    if (!isTagEnabled) {
+                        return translate('violations.tagOutOfPolicy', {tagName: tagList.name});
+                    }
+                }
+            }
+        }
+
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
@@ -204,7 +229,7 @@ function TransactionItemRow({
             }
             return error;
         }
-    }, [transactionItem, translate, report]);
+    }, [transactionItem, translate, report, policyTagLists, violations]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({

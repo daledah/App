@@ -408,6 +408,18 @@ function MoneyRequestView({
             if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
                 return translate('violations.customUnitOutOfPolicy');
             }
+            
+            // This handles the case where a tag is disabled offline but violations haven't been recalculated yet
+            if (field === 'tag' && tagValue && data?.tagListIndex !== undefined) {
+                const tagList = policyTagLists[data.tagListIndex];
+                if (tagList) {
+                    const tags = tagList.tags;
+                    const isTagEnabled = tags?.[tagValue]?.enabled ?? false;
+                    if (!isTagEnabled && tagValue) {
+                        return translate('violations.tagOutOfPolicy', {tagName: data.tagListName});
+                    }
+                }
+            }
 
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
@@ -438,6 +450,7 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
+            policyTagLists,
         ],
     );
 
