@@ -86,6 +86,9 @@ function SearchFiltersBar({
 }: SearchFiltersBarProps) {
     const isFocused = useIsFocused();
     const scrollRef = useRef<RNScrollView>(null);
+    const scrollOffsetRef = useRef(0);
+    const contentWidthRef = useRef(0);
+    const containerWidthRef = useRef(0);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
@@ -653,6 +656,34 @@ function SearchFiltersBar({
         });
     }, [filterFormValues, filters, typeFiltersKeys]);
 
+    const clampScrollPosition = useCallback(() => {
+        const maxOffset = Math.max(contentWidthRef.current - containerWidthRef.current, 0);
+        if (scrollOffsetRef.current > maxOffset) {
+            scrollOffsetRef.current = maxOffset;
+            scrollRef.current?.scrollTo({x: maxOffset, animated: false});
+        }
+    }, []);
+
+    const handleContentSizeChange = useCallback(
+        (contentWidth: number) => {
+            contentWidthRef.current = contentWidth;
+            clampScrollPosition();
+        },
+        [clampScrollPosition],
+    );
+
+    const handleLayout = useCallback(
+        ({nativeEvent: {layout}}: {nativeEvent: {layout: {width: number}}}) => {
+            containerWidthRef.current = layout.width;
+            clampScrollPosition();
+        },
+        [clampScrollPosition],
+    );
+
+    const handleScroll = useCallback(({nativeEvent: {contentOffset}}: {nativeEvent: {contentOffset: {x: number}}}) => {
+        scrollOffsetRef.current = contentOffset.x;
+    }, []);
+
     if (hasErrors) {
         return null;
     }
@@ -727,6 +758,10 @@ function SearchFiltersBar({
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
                     showsHorizontalScrollIndicator={false}
+                    onContentSizeChange={handleContentSizeChange}
+                    onLayout={handleLayout}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
                 >
                     {filters.map((filter) => (
                         <DropdownButton
