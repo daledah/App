@@ -7,6 +7,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -159,6 +160,7 @@ function WorkspaceReportFieldsPage({
 
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
+    const hasReportTitleErrors = Object.keys(reportTitleErrors ?? {}).length > 0;
 
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
 
@@ -208,15 +210,24 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.defaultValue}
                                 shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
-                                errorRowStyles={styles.mh0}
                                 onClose={clearTitleFieldError}
+                                shouldShowErrorMessages={false}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
+                                    footerComponent={
+                                        hasReportTitleErrors ? (
+                                            <ErrorMessageRow
+                                                errors={reportTitleErrors}
+                                                errorRowStyles={[styles.mt2]}
+                                                onClose={clearTitleFieldError}
+                                            />
+                                        ) : undefined
+                                    }
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow

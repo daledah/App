@@ -83,6 +83,12 @@ type MenuItemBaseProps = {
     /** Outer wrapper styles */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Outer wrapper styles */
+    footerComponent?: ReactNode;
+
+    /** Any additional styles to apply */
+    footerComponentStyle?: StyleProp<ViewStyle>;
+
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -401,6 +407,8 @@ function MenuItem({
     onPress,
     badgeText,
     style,
+    footerComponent,
+    footerComponentStyle,
     wrapperStyle,
     titleWrapperStyle,
     outerWrapperStyle,
@@ -980,6 +988,9 @@ function MenuItem({
                                                 )}
                                             </View>
                                         </View>
+                                        {!!footerComponent && (
+                                            <View style={[styles.mt2, footerComponentStyle]}>{footerComponent}</View>
+                                        )}
                                         {!!errorText && (
                                             <FormHelpMessage
                                                 isError
