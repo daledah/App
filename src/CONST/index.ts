@@ -913,6 +913,10 @@ const CONST = {
             },
         },
     },
+    KEYBOARD_SHORTCUT_PRIORITIES: {
+        DEFAULT: 0,
+        LOW: 1,
+    },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
     },

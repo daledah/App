@@ -157,6 +157,7 @@ function BaseSelectionList<TItem extends ListItem>({
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
+        shortcutPriority: CONST.KEYBOARD_SHORTCUT_PRIORITIES.LOW,
         onFocusedIndexChange: (index: number) => {
             if (!shouldScrollToFocusedIndex) {
                 return;

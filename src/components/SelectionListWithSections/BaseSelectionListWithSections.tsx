@@ -425,6 +425,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: shouldSubscribeToArrowKeyEvents && isFocused,
+        shortcutPriority: CONST.KEYBOARD_SHORTCUT_PRIORITIES.LOW,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
