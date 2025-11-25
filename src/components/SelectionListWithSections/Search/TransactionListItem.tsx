@@ -28,6 +28,7 @@ import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -66,7 +67,7 @@ function TransactionListItem<TItem extends ListItem>({
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`, {canBeMissing: true});
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.transactionThreadReportID}`, {canBeMissing: true});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
