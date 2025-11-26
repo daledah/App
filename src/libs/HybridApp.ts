@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
+import type {Account, Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import Log from './Log';
@@ -18,12 +18,13 @@ let currentHybridApp: OnyxEntry<HybridApp>;
 let currentTryNewDot: OnyxEntry<TryNewDot>;
 let currentCredentials: OnyxEntry<Credentials>;
 let currentSession: OnyxEntry<Session>;
+let currentAccount: OnyxEntry<Account>;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {
         currentHybridApp = hybridApp;
-        signInToOldDotAndChooseExperience(hybridApp, currentTryNewDot, currentCredentials, currentSession);
+        signInToOldDotAndChooseExperience(hybridApp, currentTryNewDot, currentCredentials, currentSession, currentAccount);
     },
 });
 
@@ -31,7 +32,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
         currentTryNewDot = tryNewDot;
-        signInToOldDotAndChooseExperience(currentHybridApp, tryNewDot, currentCredentials, currentSession);
+        signInToOldDotAndChooseExperience(currentHybridApp, tryNewDot, currentCredentials, currentSession, currentAccount);
     },
 });
 
@@ -39,7 +40,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.CREDENTIALS,
     callback: (credentials) => {
         currentCredentials = credentials;
-        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, credentials, currentSession);
+        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, credentials, currentSession, currentAccount);
     },
 });
 
@@ -47,7 +48,15 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session: OnyxEntry<Session>) => {
         currentSession = session;
-        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, currentCredentials, session);
+        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, currentCredentials, session, currentAccount);
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (account: OnyxEntry<Account>) => {
+        currentAccount = account;
+        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, currentCredentials, currentSession, account);
     },
 });
 
@@ -59,18 +68,28 @@ Onyx.connectWithoutView({
     },
 });
 
-function shouldUseOldApp(tryNewDot: TryNewDot) {
-    if (isEmptyObject(tryNewDot) || isEmptyObject(tryNewDot.classicRedirect)) {
+function isCopilotUser(account: OnyxEntry<Account>): boolean {
+    return !!(account?.delegatedAccess?.delegators && account.delegatedAccess.delegators.length > 0);
+}
+
+function shouldUseOldApp(tryNewDot: OnyxEntry<TryNewDot>, account: OnyxEntry<Account>): boolean {
+    if (isCopilotUser(account)) {
+        return false;
+    }
+
+    if (!tryNewDot || isEmptyObject(tryNewDot) || isEmptyObject(tryNewDot.classicRedirect)) {
         return true;
     }
     return tryNewDot.classicRedirect.dismissed;
 }
 
-/**
- * Signs the user into OldDot when session and credentials are available,
- * then decides whether to stay in NewDot or switch to OldDot based on `nvp_tryNewDot`.
- */
-function signInToOldDotAndChooseExperience(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>) {
+function signInToOldDotAndChooseExperience(
+    hybridApp: OnyxEntry<HybridApp>,
+    tryNewDot: OnyxEntry<TryNewDot>,
+    credentials: OnyxEntry<Credentials>,
+    session: OnyxEntry<Session>,
+    account: OnyxEntry<Account>,
+) {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
@@ -104,9 +123,9 @@ function signInToOldDotAndChooseExperience(hybridApp: OnyxEntry<HybridApp>, tryN
         signingInWithSAML: hybridApp?.signingInWithSAML ?? false,
     });
 
-    if (tryNewDot !== undefined) {
+    if (tryNewDot !== undefined || isCopilotUser(account)) {
         setUseNewDotSignInPage(false).then(() => {
-            if (shouldUseOldApp(tryNewDot)) {
+            if (shouldUseOldApp(tryNewDot, account)) {
                 closeReactNativeApp({shouldSetNVP: false});
             } else {
                 setReadyToShowAuthScreens(true);
