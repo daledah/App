@@ -566,7 +566,7 @@ function TransactionItemRow({
                                 return (
                                     <Icon
                                         src={Expensicons.ArrowRight}
-                                        fill={isHovered ? theme.iconHovered : theme.icon}
+                                        fill={theme.icon}
                                         additionalStyles={!isHovered && styles.opacitySemiTransparent}
                                         small
                                     />
