@@ -180,7 +180,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return categories.reduce<PolicyOption[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            if (!isOffline && isDisabled) {
+            if (!isOffline && isDisabled || true) {
                 return acc;
             }
 
