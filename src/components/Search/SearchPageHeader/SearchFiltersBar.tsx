@@ -37,7 +37,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
-import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import {handleBulkPayItemSelected, savePresetFilterState, updateAdvancedFilters} from '@libs/actions/Search';
 import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -313,6 +313,20 @@ function SearchFiltersBar({
                 sortBy: queryJSON.sortBy,
                 sortOrder: queryJSON.sortOrder,
             });
+
+            // Determine which preset we're on and save the filter state
+            let presetKey: ValueOf<typeof CONST.SEARCH.SEARCH_KEYS> | undefined;
+            if (updatedFilterFormValues.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                presetKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+            } else if (updatedFilterFormValues.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+                presetKey = CONST.SEARCH.SEARCH_KEYS.REPORTS;
+            } else if (updatedFilterFormValues.type === CONST.SEARCH.DATA_TYPES.CHAT) {
+                presetKey = CONST.SEARCH.SEARCH_KEYS.CHATS;
+            }
+
+            if (presetKey) {
+                savePresetFilterState(presetKey, queryString);
+            }
 
             close(() => {
                 // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.

@@ -6,7 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import {setSearchContext} from '@libs/actions/Search';
+import {getPresetFilterState, setSearchContext} from '@libs/actions/Search';
 import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -192,9 +192,25 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             success: isSelected,
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
-                            onSelected: singleExecution(() => {
+                            onSelected: singleExecution(async () => {
                                 setSearchContext(false);
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                
+                                // Check if this is one of the main presets (Expenses, Reports, Chats)
+                                const isMainPreset = 
+                                    item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES ||
+                                    item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS ||
+                                    item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
+                                
+                                // If it's a main preset, check for saved filter state
+                                let queryToNavigate = item.searchQuery;
+                                if (isMainPreset) {
+                                    const savedQuery = await getPresetFilterState(item.key);
+                                    if (savedQuery) {
+                                        queryToNavigate = savedQuery;
+                                    }
+                                }
+                                
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryToNavigate}));
                             }),
                         });
                     }

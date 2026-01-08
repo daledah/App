@@ -101,6 +101,7 @@ import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
+import type SearchPresetFilters from './SearchPresetFilters';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
@@ -301,6 +302,7 @@ export type {
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,
+    SearchPresetFilters,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     ScheduleCallDraft,
