@@ -6,7 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import {getPresetFilterState, setSearchContext} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -43,6 +43,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {clearSelectedTransactions} = useSearchContext();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [searchPresetFilters] = useOnyx(ONYXKEYS.SEARCH_PRESET_FILTERS, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
@@ -192,24 +193,22 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             success: isSelected,
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
-                            onSelected: singleExecution(async () => {
+                            onSelected: singleExecution(() => {
                                 setSearchContext(false);
-                                
+
                                 // Check if this is one of the main presets (Expenses, Reports, Chats)
-                                const isMainPreset = 
-                                    item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES ||
-                                    item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS ||
-                                    item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
-                                
+                                const isMainPreset =
+                                    item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES || item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS || item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
+
                                 // If it's a main preset, check for saved filter state
                                 let queryToNavigate = item.searchQuery;
                                 if (isMainPreset) {
-                                    const savedQuery = await getPresetFilterState(item.key);
+                                    const savedQuery = searchPresetFilters?.[item.key];
                                     if (savedQuery) {
                                         queryToNavigate = savedQuery;
                                     }
                                 }
-                                
+
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryToNavigate}));
                             }),
                         });

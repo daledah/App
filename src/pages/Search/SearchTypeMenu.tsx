@@ -49,6 +49,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
+    const [searchPresetFilters] = useOnyx(ONYXKEYS.SEARCH_PRESET_FILTERS, {canBeMissing: true});
     const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
@@ -256,9 +257,20 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                                             const onPress = singleExecution(() => {
+                                                const isMainPreset =
+                                                    item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES ||
+                                                    item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS ||
+                                                    item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
+                                                let queryToNavigate = item.searchQuery;
+                                                if (isMainPreset) {
+                                                    const savedQuery = searchPresetFilters?.[item.key];
+                                                    if (savedQuery) {
+                                                        queryToNavigate = savedQuery;
+                                                    }
+                                                }
                                                 clearSelectedTransactions();
                                                 setSearchContext(false);
-                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryToNavigate}));
                                             });
 
                                             return (

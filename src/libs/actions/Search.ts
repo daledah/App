@@ -1281,37 +1281,12 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
  */
 function savePresetFilterState(presetKey: ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, queryString: string) {
     // Only save filter states for the three main presets
-    if (
-        presetKey !== CONST.SEARCH.SEARCH_KEYS.EXPENSES &&
-        presetKey !== CONST.SEARCH.SEARCH_KEYS.REPORTS &&
-        presetKey !== CONST.SEARCH.SEARCH_KEYS.CHATS
-    ) {
+    if (presetKey !== CONST.SEARCH.SEARCH_KEYS.EXPENSES && presetKey !== CONST.SEARCH.SEARCH_KEYS.REPORTS && presetKey !== CONST.SEARCH.SEARCH_KEYS.CHATS) {
         return;
     }
 
     Onyx.merge(ONYXKEYS.SEARCH_PRESET_FILTERS, {
         [presetKey]: queryString,
-    });
-}
-
-/**
- * Gets the saved filter state for a specific preset, or returns undefined if none exists.
- */
-function getPresetFilterState(presetKey: ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>): Promise<string | undefined> {
-    return new Promise((resolve) => {
-        // Use waitForCollectionCallback pattern to read the value once
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.SEARCH_PRESET_FILTERS,
-            callback: (presetFilters) => {
-                Onyx.disconnect(connectionID);
-                if (!presetFilters) {
-                    resolve(undefined);
-                    return;
-                }
-                resolve(presetFilters[presetKey]);
-            },
-            initWithStoredValues: true,
-        });
     });
 }
 
@@ -1354,7 +1329,6 @@ export {
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     savePresetFilterState,
-    getPresetFilterState,
     clearPresetFilterStates,
 };
 export type {TransactionPreviewData};

@@ -1,5 +1,5 @@
-import type {SearchQueryString} from '@components/Search/types';
 import type {ValueOf} from 'type-fest';
+import type {SearchQueryString} from '@components/Search/types';
 import type CONST from '@src/CONST';
 
 /**
@@ -9,4 +9,3 @@ import type CONST from '@src/CONST';
 type SearchPresetFilters = Partial<Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchQueryString>>;
 
 export default SearchPresetFilters;
-
