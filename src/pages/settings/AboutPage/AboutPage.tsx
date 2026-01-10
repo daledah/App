@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -57,13 +58,18 @@ function AboutPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const aboutIllustration = useAboutSectionIllustration();
+    const appDownloadLinksButtonRef = useRef<HTMLDivElement>(null);
+    const shouldRestoreFocus = useRef(false);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
                 icon: icons.Link,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
+                action: waitForNavigate(() => {
+                    shouldRestoreFocus.current = true;
+                    Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
+                }),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
@@ -97,7 +103,7 @@ function AboutPage() {
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem, index) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
@@ -113,11 +119,28 @@ function AboutPage() {
                           contextMenuAnchor: popoverAnchor.current,
                       })
                 : undefined,
-            ref: popoverAnchor,
+            ref: index === 0 ? appDownloadLinksButtonRef : popoverAnchor,
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [icons, styles, translate, waitForNavigate]);
+
+    // Restore focus to the App download links button when returning from that page
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldRestoreFocus.current || !appDownloadLinksButtonRef.current) {
+                return;
+            }
+            // Use setTimeout to ensure the DOM is ready and the transition is complete
+            setTimeout(() => {
+                appDownloadLinksButtonRef.current?.focus();
+                shouldRestoreFocus.current = false;
+            }, 100);
+            return () => {
+                shouldRestoreFocus.current = false;
+            };
+        }, []),
+    );
 
     const overlayContent = useCallback(
         () => (
