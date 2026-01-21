@@ -536,7 +536,7 @@ function Button({
                 accessibilityLabel={accessibilityLabel}
                 role={getButtonRole(isNested)}
                 accessibilityState={accessibilityState}
-                aria-expanded={!!accessibilityState?.expanded}
+                aria-expanded={accessibilityState?.expanded}
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
