@@ -170,6 +170,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         ref={dropdownButtonRef}
                         onPress={handlePress}
                         text={customText ?? selectedItem?.text ?? ''}
+                        accessibilityState={{expanded: isMenuVisible}}
                         isDisabled={isDisabled || areAllOptionsDisabled}
                         shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
@@ -196,6 +197,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             ref={dropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
+                            accessibilityState={{expanded: isMenuVisible}}
                             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
