@@ -5,6 +5,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
@@ -108,10 +109,11 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
             bankAccountID,
         );
     }, [businessInfoStepValues, isProduction, country, currency, isBusinessTypeRequired, bankAccountID]);
+    const prevIsSaving = usePrevious(reimbursementAccount?.isSavingCorpayOnboardingCompanyFields);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingCompanyFields || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingCompanyFields || !reimbursementAccount?.isSuccess || !prevIsSaving) {
             return;
         }
 
@@ -123,7 +125,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit, prevIsSaving]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
