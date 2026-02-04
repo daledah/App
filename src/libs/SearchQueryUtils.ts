@@ -1463,6 +1463,14 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
+    // Infer type:chat when in: filter is used without explicit type
+    // The in: filter is only supported for chat search
+    const hasInFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
+    const hasExplicitType = query.toLowerCase().includes(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:`);
+    if (hasInFilter && !hasExplicitType) {
+        queryJSON.type = CONST.SEARCH.DATA_TYPES.CHAT;
+    }
+
     const computeNodeValue = (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     return buildSearchQueryString(standardizedQuery);

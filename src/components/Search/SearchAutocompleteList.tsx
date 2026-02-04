@@ -230,7 +230,16 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-    const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
+    const currentType = useMemo(() => {
+        if (typeFilter?.value) {
+            return typeFilter.value as SearchDataTypes;
+        }
+        // Infer type:chat when in: filter is being used since it's only supported for chat search
+        const hasInFilter =
+            parsedQuery?.autocomplete?.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
+            parsedQuery?.ranges?.some((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
+        return hasInFilter ? CONST.SEARCH.DATA_TYPES.CHAT : CONST.SEARCH.DATA_TYPES.EXPENSE;
+    }, [typeFilter?.value, parsedQuery?.autocomplete?.key, parsedQuery?.ranges]) as SearchDataTypes;
 
     const groupByAutocompleteList = useMemo(() => {
         switch (currentType) {
